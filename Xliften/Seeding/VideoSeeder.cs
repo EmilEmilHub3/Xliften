@@ -10,16 +10,17 @@ namespace Xliften.Seeding
 {
     /// <summary>
     /// Engangs-seeder til at lægge dine test-videoer ind i MongoDB GridFS.
+    /// Læser videofiler fra en 'Videos'-mappe i output-kataloget.
     /// </summary>
     public static class VideoSeeder
     {
-        // ÆNDRING: tager MongoContext i stedet for IConfiguration
+        // Seeder bruger MongoContext, så vi genbruger samme connection + bucket
         public static async Task SeedAsync(MongoContext context)
         {
             // Brug den fælles bucket fra context
             IGridFSBucket bucket = context.VideosBucket;
 
-            // Dine 3 film (filnavne skal svare til de rigtige filer i output-mappen)
+            // Dine 3 film (filnavne skal svare til filerne i Videos-mappen)
             var movieNames = new[]
             {
                 "video1.mp4",
@@ -27,8 +28,13 @@ namespace Xliften.Seeding
                 "video3.mp4"
             };
 
+            // currentDirectory peger typisk på bin/Debug/net8.0
             string currentDirectory = Directory.GetCurrentDirectory();
+
+            // Her definerer vi vores "video layer" / mappe
+            string videosFolder = Path.Combine(currentDirectory, "Videos");
             Console.WriteLine("currentDirectory: " + currentDirectory);
+            Console.WriteLine("videosFolder: " + videosFolder);
 
             foreach (var movieName in movieNames)
             {
@@ -44,11 +50,12 @@ namespace Xliften.Seeding
                     }
                 }
 
-                string fullPath = Path.Combine(currentDirectory, movieName);
+                // Fuld sti: bin/.../Videos/videoX.mp4
+                string fullPath = Path.Combine(videosFolder, movieName);
 
                 if (!File.Exists(fullPath))
                 {
-                    Console.WriteLine($"[Seed] Filen '{fullPath}' findes ikke – tjek sti og 'Copy to Output Directory'.");
+                    Console.WriteLine($"[Seed] Filen '{fullPath}' findes ikke – tjek at den ligger i projektets 'Videos'-mappe og har 'Copy to Output Directory' slået til.");
                     continue;
                 }
 
