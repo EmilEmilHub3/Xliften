@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using Xliften.Data;
 using Xliften.Models;
 using Xliften.Services.ServiceInterfaces;
 
@@ -17,13 +17,11 @@ namespace Xliften.Services
     {
         private readonly IGridFSBucket _bucket;
 
-        public GridFsVideoService(IConfiguration configuration)
+        // ÆNDRING: nu får den MongoContext i stedet for IConfiguration
+        public GridFsVideoService(MongoContext context)
         {
-            var client = new MongoClient(configuration["MongoSettings:ConnectionString"]);
-            var database = client.GetDatabase(configuration["MongoSettings:DatabaseName"]);
-
-            // Opret standard GridFS bucket ("fs.files" + "fs.chunks")
-            _bucket = new GridFSBucket(database);
+            // Brug den fælles bucket fra context
+            _bucket = context.VideosBucket;
         }
 
         /// <summary>
@@ -68,7 +66,7 @@ namespace Xliften.Services
                 result.Add(new VideoInfo
                 {
                     Id = file.Id.ToString(),
-                    Title = file.Filename 
+                    Title = file.Filename
                 });
             }
 
